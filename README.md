@@ -8,6 +8,8 @@
     - [X] UUID를 통한 회원 식별을 할 수 있도록 함.
     - [X] Password 암호화를 함.
     - [X] 회원의 생일을 입력 받을 수 있도록 함.
+- [X] `/login`: 기본적인 로그인
+    - [X] 
 
 ## Functions
 ### `/register`
@@ -17,7 +19,7 @@
     "name": "HyunSang Park",
     "nickname": "박현상",
     "birthday": "2006-01-02T00:00:00Z",
-    "email": "helloworld@helloworld.com",
+    "email": "parkhyunsang@kakao.com",
     "password": "helloworld!"
 }
 ```
@@ -38,5 +40,24 @@
         "updated_at": "2021-12-11T16:22:33.608+09:00"
     },
     "uuid": "1bc0453e-5a53-11ec-95a7-acde48001122"
+}
+```
+
+### `/login`
+#### Request
+```json
+{
+    "email": "parkhyunsang@kakao.com",
+    "password": "helloworld!"
+}
+```
+
+#### Response
+```json
+{
+    "exp": 1639236951,
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MzkyMzY5NTEsInVzZXJfdXVpZCI6IjI1NWM2ZjU4LTVhNTUtMTFlYy1iZWEzLWFjZGU0ODAwMTEyMiJ9.ytPJKpOpRZ98w093k3FDZ1wfTR8ybrrxhJ84tmp8R0Y",
+    "user_nickname": "박현상",
+    "user_uuid": "255c6f58-5a55-11ec-bea3-acde48001122"
 }
 ```
