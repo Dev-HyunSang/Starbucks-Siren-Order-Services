@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+
 	"github.com/dev-hyunsang/siren-order/middleware"
 	"github.com/gofiber/fiber/v2"
 )
@@ -11,6 +13,6 @@ func main() {
 	middleware.Route(app)
 
 	if err := app.Listen(":3000"); err != nil {
-		panic("Fiber Listen Error!")
+		log.Fatalln("Fiber Listen Error!", err)
 	}
 }
