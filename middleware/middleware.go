@@ -8,4 +8,5 @@ import (
 func Route(app *fiber.App) {
 	app.Post("/", cmd.Home)
 	app.Post("/register", cmd.Rregister)
+	app.Post("/login", cmd.Login)
 }
