@@ -23,6 +23,11 @@ type RegisterRequest struct {
 	UpdatedAt time.Time  `json:"updated_at"`
 }
 
+type LoginRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
 func Home(c *fiber.Ctx) error {
 	c.Response().Header.Set("Access-Control-Allow-Origin", "*")
 	c.Response().Header.Set("Access-Control-Allow-Headers", "*")
@@ -76,6 +81,45 @@ func Rregister(c *fiber.Ctx) error {
 		"exp":   exp,
 		"user":  user,
 		"uuid":  uuid,
+	})
+}
+
+func Login(c *fiber.Ctx) error {
+	req := new(LoginRequest)
+	if err := c.BodyParser(req); err != nil {
+		return err
+	}
+
+	if req.Email == "" || req.Password == "" {
+		return fiber.NewError(fiber.StatusBadRequest, "invalid login credentials")
+	}
+
+	db, err := database.ConnectionDataBase()
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, "DataBase Connection ERROR")
+	}
+
+	users := new(database.Users)
+	db.Where("email = ?", req.Email).Find(users)
+	if users == nil {
+		log.Print("Not Users Information at Null")
+		return fiber.NewError(fiber.StatusInternalServerError, "Not Users Information at Null")
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(users.Password), []byte(req.Password)); err != nil {
+		return err
+	}
+
+	token, exp, err := createJWTToken(*users)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(fiber.Map{
+		"token":         token,
+		"exp":           exp,
+		"user_uuid":     users.UUID,
+		"user_nickname": users.NickName,
 	})
 }
 
