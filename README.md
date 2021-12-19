@@ -24,7 +24,7 @@
 ### Order `/order/{id}`
 - [ ] 푸드마다 고유ID를 통한 푸드 및 음료를 식별할 수 있도록 함.
 
-## Payment `/payment`
+### Payment `/payment`
 - [ ] 멤버쉽 카드 생성
     - [ ] 생성 유저 식별 및 기록
     - [ ] 멤버쉽 카드의 상태
