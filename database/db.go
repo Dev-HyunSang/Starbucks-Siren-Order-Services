@@ -3,6 +3,7 @@ package database
 import (
 	"fmt"
 
+	"github.com/dev-hyunsang/siren-order/model"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -12,7 +13,7 @@ func ConnectionDataBase() (*gorm.DB, error) {
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 
 	// 구조체를 이용한 테이블 자동 생성
-	db.AutoMigrate(&Users{})
+	db.AutoMigrate(&model.Users{})
 
 	return db, err
 }
