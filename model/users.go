@@ -3,7 +3,7 @@ package model
 import (
 	"time"
 
-	"github.com/google/uuid"
+	"github.com/twinj/uuid"
 )
 
 type Users struct {
