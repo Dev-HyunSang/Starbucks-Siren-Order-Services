@@ -11,8 +11,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type RegisterRequest struct {
-	UUID      uuid.UUID
+type Users struct {
+	UserUUID  uuid.UUID
 	Name      string     `json:"name"`
 	NickName  string     `json:"nickname"`
 	Birthday  *time.Time `json:"birthday" time_format:"2006-01-02" time_utc:"1"`
@@ -39,7 +39,7 @@ type TokenDetails struct {
 var JwtKey = []byte("starbucks")
 
 func Rregister(c *fiber.Ctx) error {
-	req := new(RegisterRequest)
+	req := new(Users)
 	if err := c.BodyParser(req); err != nil {
 		return err
 	}
@@ -71,29 +71,15 @@ func Rregister(c *fiber.Ctx) error {
 
 	result.Create(&user)
 
-	token, err := createJWTToken(user.UUID)
-	if err != nil {
-		return err
-	}
-
-	cookie := new(fiber.Cookie)
-	c.Response().Header.Set("Cache-Control", "no-store, no-cache, must-revalidate, post-check=0, pre-check=0, max-age=0")
-	c.Response().Header.Set("Last-Modified", time.Now().String())
-	c.Response().Header.Set("Pragma", "no-cache")
-	c.Response().Header.Set("Expires", "-1")
-	cookie.Name = "set-token"
-	cookie.Value = token.AccessUUID
-
-	c.Cookie(cookie)
 	return c.Status(200).JSON(fiber.Map{
 		"status": 200,
-		"exp":    token,
 		"isOk":   true,
 	})
 }
 
 func Login(c *fiber.Ctx) error {
 	req := new(LoginRequest)
+	users := new(Users)
 	if err := c.BodyParser(req); err != nil {
 		return err
 	}
@@ -104,37 +90,41 @@ func Login(c *fiber.Ctx) error {
 
 	db, err := database.ConnectionDataBase()
 	if err != nil {
-		return fiber.NewError(fiber.StatusInternalServerError, "DataBase Connection ERROR")
+		log.Fatalln("Failed to DataBase Connection")
 	}
 
-	users := new(model.Users)
-	db.Where("email = ?", req.Email).Find(users)
-	if users == nil {
-		log.Print("Not Users Information at Null")
-		return fiber.NewError(fiber.StatusInternalServerError, "Not Users Information at Null")
-	}
-
-	if err := bcrypt.CompareHashAndPassword([]byte(users.Password), []byte(req.Password)); err != nil {
-		return err
-	}
-
-	token, err := createJWTToken(users.UUID)
+	result := db.Where("email=?", req.Email).Find(&users)
+	log.Println(result)
+	err = bcrypt.CompareHashAndPassword([]byte(users.Password), []byte(req.Email))
 	if err != nil {
-		return err
-	}
-
-	saveErr := CreateAuth(users.UUID, token)
-	if saveErr != nil {
-		return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
-			"message": saveErr,
+		return c.Status(400).JSON(fiber.Map{
+			"status":  400,
+			"message": "메일과 비밀번호를 확인 해 주세요.",
+			"time":    time.Now(),
 		})
-	}
+	} else {
+		ts, err := createJWTToken(uuid.NewV4())
+		if err != nil {
+			log.Fatal("Failed to Create JWT Token")
+		}
 
-	tokens := map[string]string{
-		"access_token":  token.AccessToken,
-		"refresh_token": token.RefreshToken,
+		saveErr := CreateAuth(users.UserUUID, ts)
+		if saveErr != nil {
+			log.Fatal("Failed to Create Auth")
+			return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
+				"message": "Failed to Create Auth",
+				"data":    err,
+			})
+		}
+		token := map[string]string{
+			"access_token":  ts.AccessToken,
+			"refresh_token": ts.RefreshToken,
+		}
+		c.Status(fiber.StatusOK).JSON(fiber.Map{
+			"token": token,
+			"time":  time.Now(),
+		})
+
 	}
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"data": tokens,
-	})
+	return nil
 }
