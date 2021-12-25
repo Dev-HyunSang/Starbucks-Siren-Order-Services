@@ -1,23 +1,50 @@
 # Siren Order Services(System)
 **스타벅스의 사이렌 오더 서비스(기능)들을 보고 클론 코딩을 하는 프로젝트입니다 ☕️**
 
+## Getting Started
+### FireBase Settings
+#### Add SDK
+```shell
+# Install as a module dependency
+$ go get firebase.google.com/go/v4
+# Install to $GOPATH
+$ go get firebase.google.com/go
+```
+#### Reset SDK
+```shell
+$ export GOOGLE_APPLICATION_CREDENTIALS="/home/user/Downloads/service-account-file.json"
+```
+**서비스 계정의 비공개 키 파일을 생성하려면 다음 안내를 따르세요.**
+1. Firebase Console에서 설정 > 서비스 계정을 엽니다.
+2. 새 비공개 키 생성을 클릭한 다음 키 생성을 클릭하여 확인합니다.
+3. 키가 들어 있는 JSON 파일을 안전하게 저장합니다.
+
+```shell
+$ brew install --cask google-cloud-sdk
+$ gcloud auth application-default login
+```
+- [Could not load the default credentials? (Node.js Google Compute Engine tutorial)](https://stackoverflow.com/questions/42043611/could-not-load-the-default-credentials-node-js-google-compute-engine-tutorial)
+
+#### Create GCP Storage Bucket
+- [Storage Bucket Locations](https://cloud.google.com/storage/docs/locations)
+
 ## ToDo
 ### User Account `/member`
-- [X] DataBase 설정
-    - [X] 구조체를 이용한 테이블 생성함
+- [ ] DataBase 설정
+    - [ ] 구조체를 이용한 테이블 생성함
 - [ ] Redis를 이용한 JWT 인증 서버
     - [ ] JWT 메타데이터 정의 
     - [ ] JWT 메타데이터 저장
-- [X] `/register`: 기본적인 회원가입
-    - [X] UUID를 통한 회원 식별을 할 수 있도록 함.
-    - [X] Password 암호화를 함.
-    - [X] 회원의 생일을 입력 받을 수 있도록 함.
-- [X] `/login`: 기본적인 로그인
-    - [X] 회원 정보 맞을 시 
-        - [X] `JWT` Token 발행
-    - [X] 회원 정보가 안 맞을 시
-        - [X] 오류 출력
-    - [X] 회원정보 GORM를 통해서 불러오기
+- [ ] `/register`: 기본적인 회원가입
+    - [ ] UUID를 통한 회원 식별을 할 수 있도록 함.
+    - [ ] Password 암호화를 함.
+    - [ ] 회원의 생일을 입력 받을 수 있도록 함.
+- [ ] `/login`: 기본적인 로그인
+    - [ ] 회원 정보 맞을 시 
+        - [ ] `JWT` Token 발행
+    - [ ] 회원 정보가 안 맞을 시
+        - [ ] 오류 출력
+    - [ ] 회원정보 GORM를 통해서 불러오기
 - [ ] `/edit`: 회원의 기본적인 정보를 수정할 수 있는 기능
     - [ ] 이메일 변경
     - [ ] 닉네임 변경
@@ -63,44 +90,52 @@
     - 상세 내용 추후 추가 예정
 
 ## Functions
-### `/register`
+### POST `/member/register`
 #### Request
 ```json
 {
-    "name": "HyunSang Park",
-    "nickname": "박현상",
-    "birthday": "2006-01-02T00:00:00Z",
-    "email": "parkhyunsang@kakao.com",
-    "password": "helloworld!"
+    "email": "parkhyusang@kakao.com",
+    "password": "test!@#",
+    "phone_number": "+15555550100",
+    "name": "HyunSang Park"
 }
 ```
-
 #### Response
 ```json
 {
-    "exp": "2021-12-12T17:02:00.486146+09:00",
-    "isOk": true,
-    "status": 200
-}
-```
-
-### `/login`
-#### Request
-```json
-{
-    "email": "parkhyunsang@kakao.com",
-    "password": "helloworld!"
-}
-```
-
-#### Response
-
-```json
-{
-    "exp": 1639236951,
-    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MzkyMzY5NTEsInVzZXJfdXVpZCI6IjI1NWM2ZjU4LTVhNTUtMTFlYy1iZWEzLWFjZGU0ODAwMTEyMiJ9.ytPJKpOpRZ98w093k3FDZ1wfTR8ybrrxhJ84tmp8R0Y",
-    "user_nickname": "박현상",
-    "user_uuid": "255c6f58-5a55-11ec-bea3-acde48001122"
+    "data": {
+        "displayName": "HyunSang Park",
+        "email": "parkhyusang@kakao.com",
+        "phoneNumber": "+15555550100",
+        "providerId": "firebase",
+        "rawId": "qF93zq9M2XOc9YcB4q0jO5rXiKh1",
+        "CustomClaims": null,
+        "Disabled": false,
+        "EmailVerified": false,
+        "ProviderUserInfo": [
+            {
+                "phoneNumber": "+15555550100",
+                "providerId": "phone",
+                "rawId": "+15555550100"
+            },
+            {
+                "displayName": "HyunSang Park",
+                "email": "parkhyusang@kakao.com",
+                "providerId": "password",
+                "rawId": "parkhyusang@kakao.com"
+            }
+        ],
+        "TokensValidAfterMillis": 1640421875000,
+        "UserMetadata": {
+            "CreationTimestamp": 1640421875059,
+            "LastLogInTimestamp": 0,
+            "LastRefreshTimestamp": 0
+        },
+        "TenantID": ""
+    },
+    "message": "Successfully Created User!",
+    "status": 200,
+    "time": "2021-12-25T17:44:35.611168+09:00"
 }
 ```
 
