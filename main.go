@@ -22,8 +22,8 @@ func main() {
 	if err != nil {
 		log.Fatalln("[ERROR] Failed to SQL DataBase")
 	}
-	pingDB := sqlDB.Ping()
-	log.Panicln("Ping DataBase", pingDB)
+	sqlDB.Ping()
+	log.Print("Ping DataBase")
 
 	// Auth / JWT Remote Dictionary Server TEST at Ping
 	client := database.Redis()

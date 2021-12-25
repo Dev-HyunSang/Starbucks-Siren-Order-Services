@@ -6,7 +6,7 @@ import (
 )
 
 func Route(app *fiber.App) {
-	app.Post("/", cmd.Home)
-	app.Post("/register", cmd.Rregister)
-	app.Post("/login", cmd.Login)
+	member := app.Group("/member")
+	member.Post("/register", cmd.Rregister)
+	member.Post("/login", cmd.Login)
 }
