@@ -3,7 +3,9 @@ package main
 import (
 	"log"
 
+	"github.com/dev-hyunsang/siren-order/database"
 	"github.com/dev-hyunsang/siren-order/middleware"
+	"github.com/dev-hyunsang/siren-order/model"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -12,9 +14,14 @@ func main() {
 
 	middleware.Route(app)
 
-	//database.ConnectionStorage()
+	db, err := database.ConnectionDataBase()
+	if err != nil {
+		log.Fatalln(err)
+	}
+	// 구조체를 이용한 테이블 자동 생성
+	db.AutoMigrate(&model.Users{})
 
-	if err := app.Listen(":3000"); err != nil {
+	if err := app.Listen(":4000"); err != nil {
 		log.Fatalln("Fiber Listen Error!", err)
 	}
 }
