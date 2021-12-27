@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/dev-hyunsang/siren-order/database"
-	"github.com/dev-hyunsang/siren-order/model"
+	"github.com/dev-hyunsang/siren-order/models"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt"
 	"github.com/twinj/uuid"
@@ -20,8 +20,8 @@ type RequestLogin struct {
 }
 
 func Register(c *fiber.Ctx) error {
-	data := new(model.Users)
-	users := new(model.Users)
+	data := new(models.Users)
+	users := new(models.Users)
 
 	if err := c.BodyParser(&data); err != nil {
 		return err
@@ -42,7 +42,7 @@ func Register(c *fiber.Ctx) error {
 
 	password, _ := bcrypt.GenerateFromPassword([]byte(data.Password), 14)
 	uuid := uuid.NewV4()
-	user := model.Users{
+	user := models.Users{
 		UUID:      uuid,
 		Name:      data.Name,
 		NickName:  data.NickName,
@@ -58,8 +58,8 @@ func Register(c *fiber.Ctx) error {
 }
 
 func Login(c *fiber.Ctx) error {
-	req := new(RequestLogin)  // Request JSON
-	users := new(model.Users) // Inset User Info
+	req := new(RequestLogin)   // Request JSON
+	users := new(models.Users) // Inset User Info
 
 	if err := c.BodyParser(&req); err != nil {
 		return err
@@ -119,6 +119,49 @@ func Login(c *fiber.Ctx) error {
 	})
 }
 
+func EditUser(c *fiber.Ctx) error {
+	req := new(models.Users)
+	if err := c.BodyParser(&req); err != nil {
+		return err
+	}
+
+	cookie := c.Cookies("jwt")
+
+	token, err := jwt.ParseWithClaims(cookie, &jwt.StandardClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(SecretKey), nil
+	})
+
+	if err != nil {
+		c.Status(fiber.StatusUnauthorized)
+		return c.JSON(fiber.Map{
+			"message": "unauthenticated",
+		})
+	}
+
+	claims := token.Claims.(*jwt.StandardClaims)
+
+	var user models.Users
+
+	db, err := database.ConnectionDataBase()
+	if err != nil {
+		log.Fatal("Failed to Connection DataaBase")
+
+	}
+
+	// JWT 저장되어 있는 JWT UUID를 통해서 정보를 가지고 옴.
+	db.Where("uuid =?", claims.Issuer).Find(&user)
+
+	db.Model(&user).Updates(&models.Users{
+		NickName: req.NickName,
+		Email:    req.Name,
+	})
+
+	return c.Status(200).JSON(fiber.Map{
+		"status":  200,
+		"message": "회원 정보가 성공적으로 수정되었습니다.",
+	})
+}
+
 func Auth(c *fiber.Ctx) error {
 	cookie := c.Cookies("jwt")
 
@@ -135,7 +178,7 @@ func Auth(c *fiber.Ctx) error {
 
 	claims := token.Claims.(*jwt.StandardClaims)
 
-	var user model.Users
+	var user models.Users
 
 	db, err := database.ConnectionDataBase()
 	if err != nil {
