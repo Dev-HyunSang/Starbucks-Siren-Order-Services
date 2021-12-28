@@ -6,6 +6,7 @@ import (
 
 	"github.com/dev-hyunsang/siren-order/database"
 	"github.com/dev-hyunsang/siren-order/models"
+	"github.com/dongri/phonenumber"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt"
 	"github.com/twinj/uuid"
@@ -36,20 +37,30 @@ func Register(c *fiber.Ctx) error {
 	db.Where("email = ?", data.Email).First(&users)
 	if data.Email == users.Email {
 		return c.Status(400).JSON(fiber.Map{
-			"message": "중복되는 메일이 있습니다.",
+			"message": "중복되는 메일이 있습니다, 다시 확인 해 주세요.",
 		})
 	}
 
+	// 입력한 닉네임이 중복된 닉네임인지 확인함.
+	db.Where("nick_name =?", data.NickName).First(&users)
+	if data.NickName == users.NickName {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "중복되는 닉네임이 있습니다, 다시 확인 해 주세요.",
+		})
+	}
+
+	number := phonenumber.Parse(data.PhoneNumber, "JP")
 	password, _ := bcrypt.GenerateFromPassword([]byte(data.Password), 14)
 	uuid := uuid.NewV4()
 	user := models.Users{
-		UUID:      uuid,
-		Name:      data.Name,
-		NickName:  data.NickName,
-		Birthday:  data.Birthday,
-		Email:     data.Email,
-		Password:  string(password),
-		CreatedAt: time.Now(),
+		UUID:        uuid,
+		Name:        data.Name,
+		NickName:    data.NickName,
+		Birthday:    data.Birthday,
+		PhoneNumber: number,
+		Email:       data.Email,
+		Password:    string(password),
+		CreatedAt:   time.Now(),
 	}
 
 	db.Create(&user)
@@ -151,9 +162,11 @@ func EditUser(c *fiber.Ctx) error {
 	// JWT 저장되어 있는 JWT UUID를 통해서 정보를 가지고 옴.
 	db.Where("uuid =?", claims.Issuer).Find(&user)
 
+	//
 	db.Model(&user).Updates(&models.Users{
 		NickName: req.NickName,
-		Email:    req.Name,
+
+		Email: req.Name,
 	})
 
 	return c.Status(200).JSON(fiber.Map{
