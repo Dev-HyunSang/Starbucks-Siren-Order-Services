@@ -42,10 +42,18 @@ func Register(c *fiber.Ctx) error {
 	}
 
 	// 입력한 닉네임이 중복된 닉네임인지 확인함.
-	db.Where("nick_name =?", data.NickName).First(&users)
+	db.Where("nick_name = ?", data.NickName).First(&users)
 	if data.NickName == users.NickName {
 		return c.Status(400).JSON(fiber.Map{
 			"message": "중복되는 닉네임이 있습니다, 다시 확인 해 주세요.",
+		})
+	}
+
+	// 입력한 전화번호가 가입이 되어 있는 전화번호인지 확인함.
+	db.Where("phone_number = ?", data.PhoneNumber).First(&users)
+	if data.PhoneNumber == users.PhoneNumber {
+		return c.Status(400).JSON(fiber.Map{
+			"message": "중복되는 전화번호가 있습니다, 다시 확인 해 주세요.",
 		})
 	}
 
