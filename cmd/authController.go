@@ -6,9 +6,9 @@ import (
 
 	"github.com/dev-hyunsang/siren-order/database"
 	"github.com/dev-hyunsang/siren-order/models"
-	"github.com/dongri/phonenumber"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt"
+	"github.com/nyaruka/phonenumbers"
 	"github.com/twinj/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -34,30 +34,38 @@ func Register(c *fiber.Ctx) error {
 	}
 
 	// 입력한 메일이 중복된 메일인지 확인함.
-	db.Where("email = ?", data.Email).First(&users)
+	db.Where("email = ?", data.Email).Find(&users)
 	if data.Email == users.Email {
+		log.Println("중복되는 메일이 있음.")
 		return c.Status(400).JSON(fiber.Map{
 			"message": "중복되는 메일이 있습니다, 다시 확인 해 주세요.",
 		})
 	}
 
 	// 입력한 닉네임이 중복된 닉네임인지 확인함.
-	db.Where("nick_name = ?", data.NickName).First(&users)
+	db.Where("nick_name = ?", data.NickName).Find(&users)
 	if data.NickName == users.NickName {
+		log.Println("중복되는 닉네임 있음.")
 		return c.Status(400).JSON(fiber.Map{
 			"message": "중복되는 닉네임이 있습니다, 다시 확인 해 주세요.",
 		})
 	}
 
+	num, err := phonenumbers.Parse(data.PhoneNumber, "KR")
+	if err != nil {
+		log.Fatalln("Failed to Parese Phone Number")
+	}
+	formattedNum := phonenumbers.Format(num, phonenumbers.NATIONAL)
+
 	// 입력한 전화번호가 가입이 되어 있는 전화번호인지 확인함.
-	db.Where("phone_number = ?", data.PhoneNumber).First(&users)
-	if data.PhoneNumber == users.PhoneNumber {
+	db.Where("phone_number = ?", formattedNum).Find(&users)
+	if formattedNum == users.PhoneNumber {
+		log.Println("중복되는 전화번호가 있음.")
 		return c.Status(400).JSON(fiber.Map{
 			"message": "중복되는 전화번호가 있습니다, 다시 확인 해 주세요.",
 		})
 	}
 
-	number := phonenumber.Parse(data.PhoneNumber, "JP")
 	password, _ := bcrypt.GenerateFromPassword([]byte(data.Password), 14)
 	uuid := uuid.NewV4()
 	user := models.Users{
@@ -65,7 +73,7 @@ func Register(c *fiber.Ctx) error {
 		Name:        data.Name,
 		NickName:    data.NickName,
 		Birthday:    data.Birthday,
-		PhoneNumber: number,
+		PhoneNumber: formattedNum,
 		Email:       data.Email,
 		Password:    string(password),
 		CreatedAt:   time.Now(),
