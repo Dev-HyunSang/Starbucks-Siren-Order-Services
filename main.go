@@ -19,7 +19,11 @@ func main() {
 		log.Fatalln(err)
 	}
 	// 구조체를 이용한 테이블 자동 생성
-	db.AutoMigrate(&models.Users{}, &models.Foods{})
+	db.AutoMigrate(
+		&models.Users{},
+		&models.Foods{},
+		&models.Admin{},
+	)
 
 	if err := app.Listen(":4000"); err != nil {
 		log.Fatalln("Fiber Listen Error!", err)
