@@ -103,14 +103,6 @@ func Login(c *fiber.Ctx) error {
 	log.Println(string(users.Email))
 	log.Println(string(users.Password))
 
-	// 만약 Email을 입력하지 않은 경우 오류 출력함.
-	if req.Email == " " {
-		c.Status(fiber.StatusNotFound)
-		return c.JSON(fiber.Map{
-			"message": "메일 혹은 비밀번호가 올바르지 않습니다. 다시 확인 해 주세요.",
-		})
-	}
-
 	// 입력한 비밀번호와 DB에 저장되어 있는 패스워드 대조 / 대조 실패시 오류 출력
 	if err := bcrypt.CompareHashAndPassword([]byte(users.Password), []byte(req.Password)); err != nil {
 		c.Status(fiber.StatusBadRequest)
